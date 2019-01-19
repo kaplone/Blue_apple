@@ -89,7 +89,8 @@ public class Main extends GameApplication {
                 20 + niveau.getBorder() + niveau.getInit_v() * niveau.getEcart())
                 .viewFromNode(new Rectangle(60, 60, Color.DODGERBLUE))
                 .buildAndAttach(getGameWorld());
-        player.setProperty("Etat", "normal");
+        getGameState().setValue("caseMovedX", niveau.getInit_h());
+        getGameState().setValue("caseMovedY", niveau.getInit_v());
 
         for (Item item_ : niveau.getItems()) {
             item = Entities.builder()
@@ -107,16 +108,52 @@ public class Main extends GameApplication {
         Input input = getInput();
 
         input.addAction(new UserAction("Move Right") {
-            @Override
-            protected void onActionBegin() {
-            }
 
             @Override
-            protected void onAction() {
-                getGameState().setValue("pixelsMovedX", 0);
+            protected void onActionBegin() {
+                if (getGameState().getInt("caseMovedX") < niveau.getSize_h() - 1){
+                    getGameState().increment("caseMovedX", 1);
+                    player.setX(20 + niveau.getBorder() + getGameState().getInt("caseMovedX") * niveau.getEcart());
+                }
 
             }
         }, KeyCode.RIGHT);
+
+        input.addAction(new UserAction("Move Left") {
+
+            @Override
+            protected void onActionBegin() {
+                if (getGameState().getInt("caseMovedX") > 0){
+                    getGameState().increment("caseMovedX", -1);
+                    player.setX(20 + niveau.getBorder() + getGameState().getInt("caseMovedX") * niveau.getEcart());
+                }
+
+            }
+        }, KeyCode.LEFT);
+
+        input.addAction(new UserAction("Move Up") {
+
+            @Override
+            protected void onActionBegin() {
+                if (getGameState().getInt("caseMovedY") > 0){
+                    getGameState().increment("caseMovedY", -1);
+                    player.setY(20 + niveau.getBorder() + getGameState().getInt("caseMovedY") * niveau.getEcart());
+                }
+
+            }
+        }, KeyCode.UP);
+
+        input.addAction(new UserAction("Move Down") {
+
+            @Override
+            protected void onActionBegin() {
+                if (getGameState().getInt("caseMovedY") < niveau.getSize_v() - 1){
+                    getGameState().increment("caseMovedY", 1);
+                    player.setY(20 + niveau.getBorder() + getGameState().getInt("caseMovedY") * niveau.getEcart());
+                }
+
+            }
+        }, KeyCode.DOWN);
     }
 
     public static void main(String[] args) {
