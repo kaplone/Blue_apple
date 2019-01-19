@@ -1,0 +1,85 @@
+nom : "niveau_01"
+
+size_v : 4
+size_h : 4
+border : 100
+ecart : 105
+couleur : "DARKGREY"
+init_v : 0
+init_h : 1
+
+items :
+  - type: "POMME"
+    imagePath: "pomme1_big.png"
+    xPos: 0
+    yPos: 0
+
+  - type: "POMME"
+    imagePath: "pomme2_big.png"
+    xPos: 2
+    yPos: 0
+
+  - type : "CLE"
+    imagePath: "cle_1_big.png"
+    xPos: 3
+    yPos: 0
+
+  - type: "POMME"
+    imagePath: "pomme4_big.png"
+    xPos: 0
+    yPos: 1
+
+  - type: "POMME"
+    imagePath: "pomme1_big.png"
+    xPos: 1
+    yPos: 1
+
+  - type : "CACTUS"
+    imagePath: "cactus_1_big.png"
+    xPos: 2
+    yPos: 1
+
+  - type : "HACHE"
+    imagePath: "hache_1_big.png"
+    xPos: 3
+    yPos: 1
+
+  - type : "CADENAS"
+    imagePath: "cadenas_1_big.png"
+    xPos: 0
+    yPos: 2
+
+  - type : "CLE"
+    imagePath: "cle_2_big.png"
+    xPos: 1
+    yPos: 2
+
+  - type : "HACHE"
+    imagePath: "hache_1_big.png"
+    xPos: 2
+    yPos: 2
+
+  - type : "CACTUS"
+    imagePath: "cactus_1_big.png"
+    xPos: 3
+    yPos: 2
+
+  - type : "CACTUS"
+    imagePath: "cactus_2_big.png"
+    xPos: 0
+    yPos: 3
+
+  - type : "HACHE"
+    imagePath: "hache_1_big.png"
+    xPos: 1
+    yPos: 3
+
+  - type : "CADENAS"
+    imagePath: "cadenas_2_big.png"
+    xPos: 2
+    yPos: 3
+
+  - type: "POMME"
+    imagePath: "pomme3_big.png"
+    xPos: 3
+    yPos: 3
