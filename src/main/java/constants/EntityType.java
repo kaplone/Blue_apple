@@ -7,6 +7,7 @@ public enum EntityType {
     HACHE ("HACHE"),
     CACTUS ("CACTUS"),
     POMME ("POMME"),
+    FLEUR ("FLEUR"),
     MUR ("MUR"),
     BOUE ("BOUE"),
     JOUEUR ("JOUEUR");

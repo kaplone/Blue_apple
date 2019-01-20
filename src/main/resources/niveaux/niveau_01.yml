@@ -29,8 +29,8 @@ items :
     xPos: 0
     yPos: 1
 
-  - type: "POMME"
-    imagePath: "pomme1_big.png"
+  - type: "FLEUR"
+    imagePath: "fleur_3_big.png"
     xPos: 1
     yPos: 1
 
