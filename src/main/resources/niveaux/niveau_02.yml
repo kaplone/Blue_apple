@@ -1,0 +1,85 @@
+nom : "niveau_01"
+
+size_v : 4
+size_h : 4
+border : 100
+ecart : 105
+couleur : "DARKGREY"
+init_v : 0
+init_h : 1
+
+items :
+  - type: "FLEUR"
+    imagePath: "fleur_3_big.png"
+    xPos: 0
+    yPos: 0
+
+  - type: "POMME2"
+    imagePath: "pomme2_big.png"
+    xPos: 2
+    yPos: 0
+
+  - type : "CLE1"
+    imagePath: "cle_1_big.png"
+    xPos: 3
+    yPos: 0
+
+  - type: "POMME4"
+    imagePath: "pomme4_big.png"
+    xPos: 0
+    yPos: 1
+
+  - type: "CLE2"
+    imagePath: "cle_2_big.png"
+    xPos: 1
+    yPos: 1
+
+  - type : "FANTOME"
+    imagePath: "fantome_big.png"
+    xPos: 2
+    yPos: 1
+
+  - type : "BAGUETTE"
+    imagePath: "baguette_big.png"
+    xPos: 3
+    yPos: 1
+
+  - type : "CADENAS2"
+    imagePath: "cadenas_2_big.png"
+    xPos: 0
+    yPos: 2
+
+  - type : "BAGUETTE"
+    imagePath: "baguette_big.png"
+    xPos: 1
+    yPos: 2
+
+  - type: "BAGUETTE"
+    imagePath: "baguette_big.png"
+    xPos: 2
+    yPos: 2
+
+  - type: "FANTOME"
+    imagePath: "fantome_big.png"
+    xPos: 3
+    yPos: 2
+
+  - type: "POMME1"
+    imagePath: "pomme1_big.png"
+    xPos: 0
+    yPos: 3
+
+  - type: "FANTOME"
+    imagePath: "fantome_big.png"
+    xPos: 1
+    yPos: 3
+
+  - type : "CADENAS1"
+    imagePath: "cadenas_1_big.png"
+    xPos: 2
+    yPos: 3
+
+  - type: "POMME3"
+    imagePath: "pomme3_big.png"
+    xPos: 3
+    yPos: 3

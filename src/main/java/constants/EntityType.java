@@ -2,6 +2,7 @@ package constants;
 
 public enum EntityType {
     CASE ("CASE"),
+    SHINE ("SHINE"),
     CLE ("CLE"),
     CLE1 ("CLE1"),
     CLE2 ("CLE2"),
@@ -20,7 +21,8 @@ public enum EntityType {
     MUR ("MUR"),
     FANTOME ("FANTOME"),
     BOUE ("BOUE"),
-    JOUEUR ("JOUEUR");
+    JOUEUR ("JOUEUR"),
+    BOUTON ("BOUTON");
 
     private String valeur;
 

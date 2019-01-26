@@ -23,10 +23,12 @@ import javafx.scene.effect.Lighting;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
 import models.Dalle;
@@ -51,6 +53,9 @@ public class Main extends GameApplication {
     private Integer sizeX = 1200;
     private Integer sizeY = 700;
 
+    private Entity bouton_reset;
+    private Entity bouton_back;
+
     private Double vitesse;
 
     private DecimalFormat df;
@@ -64,15 +69,23 @@ public class Main extends GameApplication {
     private Timer timer;
     private VBox statistics;
 
-    ItemImages itemImagesPomme1;
-    ItemImages itemImagesPomme2;
-    ItemImages itemImagesPomme3;
-    ItemImages itemImagesPomme4;
-    ItemImages itemImagesCleNeutre;
-    ItemImages itemImagesCle1;
-    ItemImages itemImagesCle2;
+    private ItemImages itemImagesPomme1;
+    private ItemImages itemImagesPomme2;
+    private ItemImages itemImagesPomme3;
+    private ItemImages itemImagesPomme4;
+    private ItemImages itemImagesCleNeutre;
+    private ItemImages itemImagesCle1;
+    private ItemImages itemImagesCle2;
+    private ItemImages itemImagesFantome;
+    private ItemImages itemImagesFantomeAie;
 
-    String[] labels;
+    private Integer pommesOK;
+
+    private String[] labels;
+
+    private Integer level = 1;
+
+    private List<Dalle> shineToRemove;
 
     @Override
     protected void initSettings(GameSettings settings) {
@@ -84,15 +97,19 @@ public class Main extends GameApplication {
     @Override
     protected void initGame(){
 
+        shineToRemove = new ArrayList<>();
+
         pommes = new ArrayList<>();
         items = new ArrayList<>();
         dalles = new HashMap<>();
+
+        pommesOK = 0;
 
         niveau = new Niveau();
 
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         try {
-            niveau = mapper.readValue(new File("src/main/resources/niveaux/niveau_01.yml"), Niveau.class);
+            niveau = mapper.readValue(new File(String.format("src/main/resources/niveaux/niveau_%02d.yml", level)), Niveau.class);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -150,6 +167,23 @@ public class Main extends GameApplication {
     @Override
     protected void initInput() {
         Input input = getInput();
+
+//        input.addAction(new UserAction("click reset") {
+//            @Override
+//            protected void onActionBegin() {
+//                System.out.println("click");
+//            }
+//        }, MouseButton.PRIMARY);
+
+        input.addAction(new UserAction("Reset") {
+
+            @Override
+            protected void onActionBegin() {
+                getGameScene().clear();
+                initGame();
+                initUI();
+            }
+        }, KeyCode.BACK_SPACE);
 
         input.addAction(new UserAction("Move Right") {
 
@@ -220,7 +254,8 @@ public class Main extends GameApplication {
                 && !nextDalle.getTombee()
                 && (getGameState().getBoolean("aUneBaguette") || !nextDalle.getType().equals(EntityType.FANTOME))
                 && (getGameState().getBoolean("aLaCle1") || !nextDalle.getType().equals(EntityType.CADENAS1))
-                && (getGameState().getBoolean("aLaCle2") || !nextDalle.getType().equals(EntityType.CADENAS2))){
+                && (getGameState().getBoolean("aLaCle2") || !nextDalle.getType().equals(EntityType.CADENAS2))
+                && (pommesOK == 3 || !nextDalle.getType().equals(EntityType.POMME4))){
             mouvement = true;
             player.setY(niveau.getBorder() + getGameState().getInt("caseMovedY") * niveau.getEcart());
 
@@ -241,18 +276,51 @@ public class Main extends GameApplication {
 
             switch (nextDalle.getType()){
                 case FANTOME: getGameState().setValue("aUneBaguette", false);
+                    List<Dalle> tuilesFantomeAie = dalles.values()
+                            .stream()
+                            .filter(a -> !a.getTombee() && (EntityType.FANTOME.equals(a.getType())))
+                            .collect(Collectors.toList());
+                    tuilesFantomeAie.forEach(a -> {
+                        a.getMotif().removeFromWorld();
+                        Entity aie = Entities.builder()
+                                .type(FANTOME)
+                                .at(a.getEntite().getX(),
+                                        a.getEntite().getY())
+                                .viewFromTexture("fantome_big.png")
+                                .buildAndAttach(getGameWorld());
+                        a.setMotif(aie);
+                    });
                     break;
                 case BAGUETTE: getGameState().setValue("aUneBaguette", true);
+                    List<Dalle> tuilesFantome = dalles.values()
+                            .stream()
+                            .filter(a -> !a.getTombee() && (EntityType.FANTOME.equals(a.getType())))
+                            .collect(Collectors.toList());
+                    tuilesFantome.forEach(a -> {
+                        a.getMotif().removeFromWorld();
+                        Entity aie = Entities.builder()
+                                .type(FANTOME)
+                                .at(a.getEntite().getX(),
+                                        a.getEntite().getY())
+                                .viewFromTexture("fantome_aie_big.png")
+                                .buildAndAttach(getGameWorld());
+                        a.setMotif(aie);
+                    });
                     break;
                 case POMME1:
                     while (itPomme.hasNext()) {
                         ImageView pomme = (ImageView) itPomme.next();
                         if (pomme.equals(itemImagesPomme1.getImageViewDefaut())) {
-
+                            pommesOK ++;
                             break;
                         }
                         index++;
-
+                    }
+                    if (pommesOK == 3){
+                        Iterator<Node> pommeBleueIteraror =  statisticPommeBleue.iterator();
+                        pommeBleueIteraror.next();
+                        HBox pommeBleueHbox = (HBox) pommeBleueIteraror.next();
+                        pommeBleueHbox.getChildren().set(0, itemImagesPomme4.getImageView(-0.5, 75));
                     }
                     itPommeHbox.getChildren().set(index, itemImagesPomme1.getImageView(0.2, 75));
                     break;
@@ -260,49 +328,156 @@ public class Main extends GameApplication {
                     while (itPomme.hasNext()) {
                         ImageView pomme = (ImageView) itPomme.next();
                         if (pomme.equals(itemImagesPomme2.getImageViewDefaut())) {
-
+                            pommesOK ++;
                             break;
                         }
                         index++;
-
                      }
+                    if (pommesOK == 3){
+                        Iterator<Node> pommeBleueIteraror =  statisticPommeBleue.iterator();
+                        pommeBleueIteraror.next();
+                        HBox pommeBleueHbox = (HBox) pommeBleueIteraror.next();
+                        pommeBleueHbox.getChildren().set(0, itemImagesPomme4.getImageView(-0.5, 75));
+                    }
                      itPommeHbox.getChildren().set(index, itemImagesPomme2.getImageView(0.2, 75));
                      break;
                 case POMME3:
                     while (itPomme.hasNext()) {
                         ImageView pomme = (ImageView) itPomme.next();
                         if (pomme.equals(itemImagesPomme3.getImageViewDefaut())) {
-
+                            pommesOK ++;
                             break;
                         }
                         index++;
 
                     }
+                    if (pommesOK == 3){
+                        Iterator<Node> pommeBleueIteraror =  statisticPommeBleue.iterator();
+                        pommeBleueIteraror.next();
+                        HBox pommeBleueHbox = (HBox) pommeBleueIteraror.next();
+                        pommeBleueHbox.getChildren().set(0, itemImagesPomme4.getImageView(-0.5, 75));
+                    }
                     itPommeHbox.getChildren().set(index, itemImagesPomme3.getImageView(0.2, 75));
                     break;
                 case POMME4:
+                    Iterator<Node> pommeBleueIteraror =  statisticPommeBleue.iterator();
+                    pommeBleueIteraror.next();
+                    HBox pommeBleueHbox = (HBox) pommeBleueIteraror.next();
+                    pommeBleueHbox.getChildren().set(0, itemImagesPomme4.getImageView(0.2, 75));
+                    level ++;
+                    getGameScene().clear();
+                    initGame();
+                    initUI();
                     break;
                 case CLE1: statisticCle.clear();
                     statisticCle.add(new Text(labels[2]));
                     statisticCle.add(itemImagesCle1.getImageView(0d, 50));
                     getGameState().setValue("aLaCle1", true);
+                    List<Dalle> tuilesCadenas1 = dalles.values()
+                            .stream()
+                            .filter(a -> !a.getTombee() && (EntityType.CADENAS1.equals(a.getType())))
+                            .collect(Collectors.toList());
+                    tuilesCadenas1.forEach(a -> {
+                        a.getMotif().removeFromWorld();
+                        Entity cadenas_ouvert = Entities.builder()
+                                .type(CADENAS)
+                                .at(a.getEntite().getX(),
+                                        a.getEntite().getY())
+                                .viewFromTexture("cadenas_1_ouvert_big.png")
+                                .buildAndAttach(getGameWorld());
+                        a.setMotif(cadenas_ouvert);
+                    });
+                    List<Dalle> tuilesCadenas2 = dalles.values()
+                            .stream()
+                            .filter(a -> !a.getTombee() && (EntityType.CADENAS2.equals(a.getType())))
+                            .collect(Collectors.toList());
+                    tuilesCadenas2.forEach(a -> {
+                        a.getMotif().removeFromWorld();
+                        Entity cadenas_ouvert = Entities.builder()
+                                .type(CADENAS)
+                                .at(a.getEntite().getX(),
+                                        a.getEntite().getY())
+                                .viewFromTexture("cadenas_2_big.png")
+                                .buildAndAttach(getGameWorld());
+                        a.setMotif(cadenas_ouvert);
+                    });
                     break;
                 case CLE2: statisticCle.clear();
                     statisticCle.add(new Text(labels[2]));
                     statisticCle.add(itemImagesCle2.getImageView(0d, 50));
                     getGameState().setValue("aLaCle2", true);
+                    List<Dalle> tuilesCadenas1_ = dalles.values()
+                            .stream()
+                            .filter(a -> !a.getTombee() && (EntityType.CADENAS1.equals(a.getType())))
+                            .collect(Collectors.toList());
+                    tuilesCadenas1_.forEach(a -> {
+                        a.getMotif().removeFromWorld();
+                        Entity cadenas_ouvert = Entities.builder()
+                                .type(CADENAS)
+                                .at(a.getEntite().getX(),
+                                        a.getEntite().getY())
+                                .viewFromTexture("cadenas_1_big.png")
+                                .buildAndAttach(getGameWorld());
+                        a.setMotif(cadenas_ouvert);
+                    });
+                    List<Dalle> tuilesCadenas2_ = dalles.values()
+                            .stream()
+                            .filter(a -> !a.getTombee() && (EntityType.CADENAS2.equals(a.getType())))
+                            .collect(Collectors.toList());
+                    tuilesCadenas2_.forEach(a -> {
+                        a.getMotif().removeFromWorld();
+                        Entity cadenas_ouvert = Entities.builder()
+                                .type(CADENAS)
+                                .at(a.getEntite().getX(),
+                                        a.getEntite().getY())
+                                .viewFromTexture("cadenas_2_ouvert_big.png")
+                                .buildAndAttach(getGameWorld());
+                        a.setMotif(cadenas_ouvert);
+                    });
                     break;
                 case CADENAS1: statisticCle.clear();
                     statisticCle.add(new Text(labels[2]));
                     statisticCle.add(itemImagesCleNeutre.getImageView(- 0.4d, 50));
                     getGameState().setValue("aLaCle1", false);
+                    List<Dalle> tuilesCadenas1Used = dalles.values()
+                            .stream()
+                            .filter(a -> !a.getTombee() && (EntityType.CADENAS1.equals(a.getType())))
+                            .collect(Collectors.toList());
+                    tuilesCadenas1Used.forEach(a -> {
+                        a.getMotif().removeFromWorld();
+                        Entity cadenas_ouvert = Entities.builder()
+                                .type(CADENAS)
+                                .at(a.getEntite().getX(),
+                                        a.getEntite().getY())
+                                .viewFromTexture("cadenas_1_big.png")
+                                .buildAndAttach(getGameWorld());
+                        a.setMotif(cadenas_ouvert);
+                    });
                     break;
                 case CADENAS2: statisticCle.clear();
                     statisticCle.add(new Text(labels[2]));
                     statisticCle.add(itemImagesCleNeutre.getImageView(- 0.4d, 50));
                     getGameState().setValue("aLaCle2", false);
+                    List<Dalle> tuilesCadenas2Used = dalles.values()
+                            .stream()
+                            .filter(a -> !a.getTombee() && (EntityType.CADENAS2.equals(a.getType())))
+                            .collect(Collectors.toList());
+                    tuilesCadenas2Used.forEach(a -> {
+                        a.getMotif().removeFromWorld();
+                        Entity cadenas_ouvert = Entities.builder()
+                                .type(CADENAS)
+                                .at(a.getEntite().getX(),
+                                        a.getEntite().getY())
+                                .viewFromTexture("cadenas_2_big.png")
+                                .buildAndAttach(getGameWorld());
+                        a.setMotif(cadenas_ouvert);
+                    });
                     break;
             }
+
+            shineToRemove.forEach(a -> {
+                a.clearShine();
+            });
 
             String image;
             if (getGameState().getBoolean("aUneBaguette")){
@@ -327,12 +502,117 @@ public class Main extends GameApplication {
                             player.getY())
                     .viewFromTexture("fee_triste_big.png")
                     .buildAndAttach(getGameWorld());
+
+            if (nextDalle != null && nextDalle.getType() != null){
+                switch (nextDalle.getType()){
+                    case FANTOME:
+                        List<Dalle> tuilesBaguettes = dalles.values()
+                                .stream()
+                                .filter(a -> !a.getTombee() && EntityType.BAGUETTE.equals(a.getType()))
+                                .collect(Collectors.toList());
+                        tuilesBaguettes.forEach(a -> {
+                            a.getMotif().removeFromWorld();
+                            Entity shine = Entities.builder()
+                                    .type(SHINE)
+                                    .at(a.getEntite().getX(),
+                                            a.getEntite().getY())
+                                    .viewFromTexture("shine.png")
+                                    .buildAndAttach(getGameWorld());
+                            getGameWorld().addEntity(a.getMotif());
+                            a.addShine(shine);
+                        });
+                        shineToRemove.addAll(tuilesBaguettes);
+                        break;
+                    case POMME4:
+                        List<Dalle> tuilesPommes = dalles.values()
+                                .stream()
+                                .filter(a -> !a.getTombee() && (EntityType.POMME1.equals(a.getType())
+                                        || EntityType.POMME2.equals(a.getType())
+                                        || EntityType.POMME3.equals(a.getType())))
+                                .collect(Collectors.toList());
+                        tuilesPommes.forEach(a -> {
+                            a.getMotif().removeFromWorld();
+                            Entity shine = Entities.builder()
+                                    .type(SHINE)
+                                    .at(a.getEntite().getX(),
+                                            a.getEntite().getY())
+                                    .viewFromTexture("shine.png")
+                                    .buildAndAttach(getGameWorld());
+                            getGameWorld().addEntity(a.getMotif());
+                            a.addShine(shine);
+                        });
+                        shineToRemove.addAll(tuilesPommes);
+                        break;
+                    case CADENAS1 :
+                        List<Dalle> tuilesCle1 = dalles.values()
+                                .stream()
+                                .filter(a -> !a.getTombee() && EntityType.CLE1.equals(a.getType()))
+                                .collect(Collectors.toList());
+                        tuilesCle1.forEach(a -> {
+                            a.getMotif().removeFromWorld();
+                            Entity shine = Entities.builder()
+                                    .type(SHINE)
+                                    .at(a.getEntite().getX(),
+                                            a.getEntite().getY())
+                                    .viewFromTexture("shine.png")
+                                    .buildAndAttach(getGameWorld());
+                            getGameWorld().addEntity(a.getMotif());
+                            a.addShine(shine);
+                        });
+                        shineToRemove.addAll(tuilesCle1);
+                        break;
+                    case CADENAS2:
+                        List<Dalle> tuilesCle2 = dalles.values()
+                                .stream()
+                                .filter(a -> !a.getTombee() && EntityType.CLE2.equals(a.getType()))
+                                .collect(Collectors.toList());
+                        tuilesCle2.forEach(a -> {
+                            a.getMotif().removeFromWorld();
+                            Entity shine = Entities.builder()
+                                    .type(SHINE)
+                                    .at(a.getEntite().getX(),
+                                            a.getEntite().getY())
+                                    .viewFromTexture("shine.png")
+                                    .buildAndAttach(getGameWorld());
+                            getGameWorld().addEntity(a.getMotif());
+                            a.addShine(shine);
+                        });
+                        shineToRemove.addAll(tuilesCle2);
+                        break;
+                }
+            }
         }
         return mouvement;
     }
 
     @Override
     protected void initUI() {
+
+        Text titre = new Text();
+        titre.setText("Niveau " + level);
+        titre.setFont(new Font(40));
+        titre.setX(20);
+        titre.setY(40);
+
+        Text sous_titre = new Text();
+        sous_titre.setText("La fée doit atteindre la pomme bleue ...");
+        sous_titre.setFont(new Font(25));
+        sous_titre.setX(30);
+        sous_titre.setY(70);
+
+        getGameScene().addUINodes(titre, sous_titre);
+//
+//        bouton_reset = Entities.builder()
+//                .type(BOUTON)
+//                .at(850, 450)
+//                .viewFromTexture("reset_big.png")
+//                .buildAndAttach(getGameWorld());
+//
+//        bouton_reset = Entities.builder()
+//                .type(BOUTON)
+//                .at(650, 470)
+//                .viewFromTexture("back_big.png")
+//                .buildAndAttach(getGameWorld());
 
         df = new DecimalFormat("00.00");
 
@@ -353,6 +633,8 @@ public class Main extends GameApplication {
         itemImagesCleNeutre = new ItemImages(EntityType.CLE, "assets/textures/" + "cle_1_neutre_big.png");
         itemImagesCle1 = new ItemImages(EntityType.CLE, "assets/textures/" + "cle_1_big.png");
         itemImagesCle2 = new ItemImages(EntityType.CLE, "assets/textures/" + "cle_2_big.png");
+        itemImagesFantome = new ItemImages(EntityType.CLE, "assets/textures/" + "fantome_big.png");
+        itemImagesFantomeAie = new ItemImages(EntityType.CLE, "assets/textures/" + "fantome_aie_big.png");
 
 
         HBox hboxPommes = new HBox();
