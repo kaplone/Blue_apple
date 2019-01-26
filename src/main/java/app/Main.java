@@ -14,8 +14,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import constants.EntityType;
 import javafx.geometry.Pos;
+import javafx.scene.effect.ColorAdjust;
 import javafx.scene.effect.Light;
 import javafx.scene.effect.Lighting;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
@@ -26,6 +28,7 @@ import javafx.scene.text.Text;
 
 import models.Dalle;
 import models.Item;
+import models.ItemImages;
 import models.Niveau;
 
 import java.io.File;
@@ -107,12 +110,16 @@ public class Main extends GameApplication {
 
         player = Entities.builder()
                 .type(JOUEUR)
-                .at(20 + niveau.getBorder() + niveau.getInit_h() * niveau.getEcart(),
-                20 + niveau.getBorder() + niveau.getInit_v() * niveau.getEcart())
-                .viewFromNode(new Rectangle(60, 60, Color.DODGERBLUE))
+                .at(niveau.getBorder() + niveau.getInit_h() * niveau.getEcart(),
+                niveau.getBorder() + niveau.getInit_v() * niveau.getEcart())
+                .viewFromTexture("fee_big.png")
                 .buildAndAttach(getGameWorld());
         getGameState().setValue("caseMovedX", niveau.getInit_h());
         getGameState().setValue("caseMovedY", niveau.getInit_v());
+        getGameState().setValue("aUneBaguette", false);
+        getGameState().setValue("aLaCle1", false);
+        getGameState().setValue("aLaCle2", false);
+        getGameState().setValue("aLaCle3", false);
 
         for (Item item_ : niveau.getItems()) {
             item = Entities.builder()
@@ -123,6 +130,7 @@ public class Main extends GameApplication {
                     .buildAndAttach(getGameWorld());
             items.add(item);
             dalles.get(item_.getxPos() + "_" + item_.getyPos()).setMotif(item);
+            dalles.get(item_.getxPos() + "_" + item_.getyPos()).setType(item_.getType());
         }
     }
 
@@ -134,14 +142,12 @@ public class Main extends GameApplication {
 
             @Override
             protected void onActionBegin() {
-                if (getGameState().getInt("caseMovedX") < niveau.getSize_h() - 1
-                   && !dalles.get((getGameState().getInt("caseMovedX") + 1) + "_" + getGameState().getInt("caseMovedY")).getTombee()){
-                    getGameState().increment("caseMovedX", 1);
-                    player.setX(20 + niveau.getBorder() + getGameState().getInt("caseMovedX") * niveau.getEcart());
-                    Dalle previous =  dalles.get((getGameState().getInt("caseMovedX") - 1) + "_" + getGameState().getInt("caseMovedY"));
-                    Dalle contact = dalles.get(getGameState().getInt("caseMovedX") + "_" + getGameState().getInt("caseMovedY"));
-                    contact.setTombee(true);
-                    getGameWorld().removeEntities(previous.getEntite(), contact.getMotif());
+                Dalle nextDalle = dalles.get((getGameState().getInt("caseMovedX") + 1) + "_" + getGameState().getInt("caseMovedY"));
+                Dalle actualDalle= dalles.get(getGameState().getInt("caseMovedX") + "_" + getGameState().getInt("caseMovedY"));
+
+                Boolean mouvement = act(actualDalle, nextDalle);
+                if (mouvement){
+                    getGameState().increment("caseMovedX", + 1);
                 }
 
             }
@@ -151,16 +157,13 @@ public class Main extends GameApplication {
 
             @Override
             protected void onActionBegin() {
-                if (getGameState().getInt("caseMovedX") > 0
-                        && !dalles.get((getGameState().getInt("caseMovedX") - 1) + "_" + getGameState().getInt("caseMovedY")).getTombee()){
-                    getGameState().increment("caseMovedX", -1);
-                    player.setX(20 + niveau.getBorder() + getGameState().getInt("caseMovedX") * niveau.getEcart());
-                    Dalle previous =  dalles.get((getGameState().getInt("caseMovedX") + 1) + "_" + getGameState().getInt("caseMovedY"));
-                    Dalle contact =  dalles.get(getGameState().getInt("caseMovedX") + "_" + getGameState().getInt("caseMovedY"));
-                    contact.setTombee(true);
-                    getGameWorld().removeEntities(previous.getEntite(), contact.getMotif());
-                }
+                Dalle nextDalle = dalles.get((getGameState().getInt("caseMovedX") - 1) + "_" + getGameState().getInt("caseMovedY"));
+                Dalle actualDalle= dalles.get(getGameState().getInt("caseMovedX") + "_" + getGameState().getInt("caseMovedY"));
 
+                Boolean mouvement = act(actualDalle, nextDalle);
+                if (mouvement){
+                    getGameState().increment("caseMovedX", - 1);
+                }
             }
         }, KeyCode.LEFT);
 
@@ -168,16 +171,13 @@ public class Main extends GameApplication {
 
             @Override
             protected void onActionBegin() {
-                if (getGameState().getInt("caseMovedY") > 0
-                        && !dalles.get(getGameState().getInt("caseMovedX") + "_" + (getGameState().getInt(("caseMovedY")) - 1)).getTombee()){
-                    getGameState().increment("caseMovedY", -1);
-                    player.setY(20 + niveau.getBorder() + getGameState().getInt("caseMovedY") * niveau.getEcart());
-                    Dalle previous = dalles.get(getGameState().getInt("caseMovedX") + "_" + (getGameState().getInt("caseMovedY") +1));
-                    Dalle contact = dalles.get(getGameState().getInt("caseMovedX") + "_" + getGameState().getInt("caseMovedY"));
-                    contact.setTombee(true);
-                    getGameWorld().removeEntities(previous.getEntite(), contact.getMotif());
-                }
+                Dalle nextDalle = dalles.get(getGameState().getInt("caseMovedX") + "_" + (getGameState().getInt("caseMovedY") - 1));
+                Dalle actualDalle= dalles.get(getGameState().getInt("caseMovedX") + "_" + getGameState().getInt("caseMovedY"));
 
+                Boolean mouvement = act(actualDalle, nextDalle);
+                if (mouvement){
+                    getGameState().increment("caseMovedY", - 1);
+                }
             }
         }, KeyCode.UP);
 
@@ -185,18 +185,63 @@ public class Main extends GameApplication {
 
             @Override
             protected void onActionBegin() {
-                if (getGameState().getInt("caseMovedY") < niveau.getSize_v() - 1
-                        && !dalles.get(getGameState().getInt("caseMovedX") + "_" + (getGameState().getInt(("caseMovedY")) + 1)).getTombee()){
+                Dalle nextDalle = dalles.get(getGameState().getInt("caseMovedX") + "_" + (getGameState().getInt("caseMovedY") + 1));
+                Dalle actualDalle= dalles.get(getGameState().getInt("caseMovedX") + "_" + getGameState().getInt("caseMovedY"));
+
+                Boolean mouvement = act(actualDalle, nextDalle);
+                if (mouvement){
                     getGameState().increment("caseMovedY", 1);
-                    player.setY(20 + niveau.getBorder() + getGameState().getInt("caseMovedY") * niveau.getEcart());
-                    Dalle previous = dalles.get(getGameState().getInt("caseMovedX") + "_" + (getGameState().getInt("caseMovedY") - 1));
-                    Dalle contact = dalles.get(getGameState().getInt("caseMovedX") + "_" + getGameState().getInt("caseMovedY"));
-                    contact.setTombee(true);
-                    getGameWorld().removeEntities(previous.getEntite(), contact.getMotif());
                 }
 
             }
         }, KeyCode.DOWN);
+    }
+
+    private boolean act(Dalle actualDalle, Dalle nextDalle){
+        Boolean mouvement = false;
+        if (getGameState().getInt("caseMovedY") < niveau.getSize_v() - 1
+                && !nextDalle.getTombee()
+                &&  (getGameState().getBoolean("aUneBaguette") || !nextDalle.getType().equals(EntityType.FANTOME))){
+            mouvement = true;
+            player.setY(niveau.getBorder() + getGameState().getInt("caseMovedY") * niveau.getEcart());
+
+            actualDalle.setTombee(true);
+            nextDalle.setTombee(true);
+            getGameWorld().removeEntities(actualDalle.getEntite(), nextDalle.getMotif());
+
+
+
+            String image;
+            if (nextDalle.getType().equals(EntityType.FANTOME)){
+                getGameState().setValue("aUneBaguette", false);
+            }
+            if (nextDalle.getType().equals(EntityType.BAGUETTE)){
+                getGameState().setValue("aUneBaguette", true);
+            }
+            if (getGameState().getBoolean("aUneBaguette")){
+                image = "fee_baguette_big.png";
+            }
+            else {
+                image = "fee_big.png";
+            }
+            player.removeFromWorld();
+            player = Entities.builder()
+                    .type(JOUEUR)
+                    .at(nextDalle.getEntite().getX(),
+                            nextDalle.getEntite().getY())
+                    .viewFromTexture(image)
+                    .buildAndAttach(getGameWorld());
+        }
+        else {
+            player.removeFromWorld();
+            player = Entities.builder()
+                    .type(JOUEUR)
+                    .at(player.getX(),
+                            player.getY())
+                    .viewFromTexture("fee_triste_big.png")
+                    .buildAndAttach(getGameWorld());
+        }
+        return mouvement;
     }
 
     @Override
@@ -212,41 +257,38 @@ public class Main extends GameApplication {
         statistics.setTranslateX(650); // x = 700
         statistics.setTranslateY(50); // y = 100
 
-        String[] labels = new String[] {"Pommes", "Pomme bleue", "Fleurs", "Clé", "Hache"};
+        String[] labels = new String[] {"Pommes", "Pomme bleue", "Clé(s)",};
+
+        ItemImages itemImagesPomme1 = new ItemImages(EntityType.POMME, "assets/textures/" + "pomme1_big.png");
+        ItemImages itemImagesPomme2 = new ItemImages(EntityType.POMME, "assets/textures/" + "pomme2_big.png");
+        ItemImages itemImagesPomme3 = new ItemImages(EntityType.POMME, "assets/textures/" + "pomme3_big.png");
+        ItemImages itemImagesPomme4 = new ItemImages(EntityType.POMME, "assets/textures/" + "pomme4_big.png");
+        ItemImages itemImagesCle = new ItemImages(EntityType.CLE, "assets/textures/" + "cle_1_neutre_big.png");
+
 
         HBox hboxPommes = new HBox();
         hboxPommes.getChildren().addAll(
-                new ImageView("assets/textures/" + "pomme1_big.png"),
-                new ImageView("assets/textures/" + "pomme2_big.png"),
-                new ImageView("assets/textures/" + "pomme3_big.png")
+                itemImagesPomme1.getImageView(-0.7, 60),
+                itemImagesPomme2.getImageView(-0.7, 60),
+                itemImagesPomme3.getImageView(-0.7, 60)
         );
         HBox hboxPommeBleue = new HBox();
         hboxPommeBleue.getChildren().addAll(
-                new ImageView("assets/textures/" + "pomme4_big.png")
+                itemImagesPomme4.getImageView(-0.7, 60)
         );
-        HBox hboxFleurs = new HBox();
-        hboxFleurs.getChildren().addAll(
-                new ImageView("assets/textures/" + "fleur_1_big.png"),
-                new ImageView("assets/textures/" + "fleur_3_big.png")
-        );
+
         HBox hboxCle = new HBox();
         hboxCle.getChildren().addAll(
-                new ImageView("assets/textures/" + "cle_1_big.png")
-        );
-        HBox hboxHache = new HBox();
-        hboxHache.getChildren().addAll(
-                new ImageView("assets/textures/" + "hache_1_big.png")
+                itemImagesCle.getImageView(-0.7, 60)
         );
 
         HBox[] icones = new HBox[] {
                 hboxPommes,
                 hboxPommeBleue,
-                hboxFleurs,
                 hboxCle,
-                hboxHache
         };
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 3; i++) {
             HBox hbox = new HBox();
             hbox.setAlignment(Pos.CENTER_LEFT);
             hbox.setSpacing(20);

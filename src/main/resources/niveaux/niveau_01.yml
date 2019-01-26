@@ -9,8 +9,8 @@ init_v : 0
 init_h : 1
 
 items :
-  - type: "POMME"
-    imagePath: "pomme1_big.png"
+  - type: "FLEUR"
+    imagePath: "fleur_3_big.png"
     xPos: 0
     yPos: 0
 
@@ -29,18 +29,18 @@ items :
     xPos: 0
     yPos: 1
 
-  - type: "FLEUR"
-    imagePath: "fleur_3_big.png"
+  - type: "POMME"
+    imagePath: "pomme1_big.png"
     xPos: 1
     yPos: 1
 
-  - type : "CACTUS"
-    imagePath: "cactus_1_big.png"
+  - type : "FANTOME"
+    imagePath: "fantome_big.png"
     xPos: 2
     yPos: 1
 
-  - type : "HACHE"
-    imagePath: "hache_1_big.png"
+  - type : "BAGUETTE"
+    imagePath: "baguette_big.png"
     xPos: 3
     yPos: 1
 
@@ -54,23 +54,23 @@ items :
     xPos: 1
     yPos: 2
 
-  - type : "HACHE"
-    imagePath: "hache_1_big.png"
+  - type: "BAGUETTE"
+    imagePath: "baguette_big.png"
     xPos: 2
     yPos: 2
 
-  - type : "CACTUS"
-    imagePath: "cactus_1_big.png"
+  - type: "FANTOME"
+    imagePath: "fantome_big.png"
     xPos: 3
     yPos: 2
 
-  - type : "CACTUS"
-    imagePath: "cactus_2_big.png"
+  - type: "FANTOME"
+    imagePath: "fantome_big.png"
     xPos: 0
     yPos: 3
 
-  - type : "HACHE"
-    imagePath: "hache_1_big.png"
+  - type: "BAGUETTE"
+    imagePath: "baguette_big.png"
     xPos: 1
     yPos: 3
 

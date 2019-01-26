@@ -5,10 +5,12 @@ public enum EntityType {
     CLE ("CLE"),
     CADENAS ("CADENAS"),
     HACHE ("HACHE"),
+    BAGUETTE ("BAGUETTE"),
     CACTUS ("CACTUS"),
     POMME ("POMME"),
     FLEUR ("FLEUR"),
     MUR ("MUR"),
+    FANTOME ("FANTOME"),
     BOUE ("BOUE"),
     JOUEUR ("JOUEUR");
 
