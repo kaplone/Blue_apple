@@ -12,8 +12,11 @@ import com.almasb.fxgl.time.Timer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import constants.EntityType;
+import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.effect.Light;
 import javafx.scene.effect.Lighting;
@@ -60,6 +63,16 @@ public class Main extends GameApplication {
 
     private Timer timer;
     private VBox statistics;
+
+    ItemImages itemImagesPomme1;
+    ItemImages itemImagesPomme2;
+    ItemImages itemImagesPomme3;
+    ItemImages itemImagesPomme4;
+    ItemImages itemImagesCleNeutre;
+    ItemImages itemImagesCle1;
+    ItemImages itemImagesCle2;
+
+    String[] labels;
 
     @Override
     protected void initSettings(GameSettings settings) {
@@ -145,7 +158,8 @@ public class Main extends GameApplication {
                 Dalle nextDalle = dalles.get((getGameState().getInt("caseMovedX") + 1) + "_" + getGameState().getInt("caseMovedY"));
                 Dalle actualDalle= dalles.get(getGameState().getInt("caseMovedX") + "_" + getGameState().getInt("caseMovedY"));
 
-                Boolean mouvement = act(actualDalle, nextDalle);
+                Boolean pasAuBord = getGameState().getInt("caseMovedX") < niveau.getSize_h() - 1;
+                Boolean mouvement = act(pasAuBord, actualDalle, nextDalle);
                 if (mouvement){
                     getGameState().increment("caseMovedX", + 1);
                 }
@@ -160,7 +174,8 @@ public class Main extends GameApplication {
                 Dalle nextDalle = dalles.get((getGameState().getInt("caseMovedX") - 1) + "_" + getGameState().getInt("caseMovedY"));
                 Dalle actualDalle= dalles.get(getGameState().getInt("caseMovedX") + "_" + getGameState().getInt("caseMovedY"));
 
-                Boolean mouvement = act(actualDalle, nextDalle);
+                Boolean pasAuBord = getGameState().getInt("caseMovedX") > 0;
+                Boolean mouvement = act(pasAuBord, actualDalle, nextDalle);
                 if (mouvement){
                     getGameState().increment("caseMovedX", - 1);
                 }
@@ -174,7 +189,8 @@ public class Main extends GameApplication {
                 Dalle nextDalle = dalles.get(getGameState().getInt("caseMovedX") + "_" + (getGameState().getInt("caseMovedY") - 1));
                 Dalle actualDalle= dalles.get(getGameState().getInt("caseMovedX") + "_" + getGameState().getInt("caseMovedY"));
 
-                Boolean mouvement = act(actualDalle, nextDalle);
+                Boolean pasAuBord = getGameState().getInt("caseMovedY") > 0;
+                Boolean mouvement = act(pasAuBord, actualDalle, nextDalle);
                 if (mouvement){
                     getGameState().increment("caseMovedY", - 1);
                 }
@@ -188,7 +204,8 @@ public class Main extends GameApplication {
                 Dalle nextDalle = dalles.get(getGameState().getInt("caseMovedX") + "_" + (getGameState().getInt("caseMovedY") + 1));
                 Dalle actualDalle= dalles.get(getGameState().getInt("caseMovedX") + "_" + getGameState().getInt("caseMovedY"));
 
-                Boolean mouvement = act(actualDalle, nextDalle);
+                Boolean pasAuBord = getGameState().getInt("caseMovedY") < niveau.getSize_v() - 1;
+                Boolean mouvement = act(pasAuBord, actualDalle, nextDalle);
                 if (mouvement){
                     getGameState().increment("caseMovedY", 1);
                 }
@@ -197,11 +214,13 @@ public class Main extends GameApplication {
         }, KeyCode.DOWN);
     }
 
-    private boolean act(Dalle actualDalle, Dalle nextDalle){
+    private boolean act(Boolean bord, Dalle actualDalle, Dalle nextDalle){
         Boolean mouvement = false;
-        if (getGameState().getInt("caseMovedY") < niveau.getSize_v() - 1
+        if (bord
                 && !nextDalle.getTombee()
-                &&  (getGameState().getBoolean("aUneBaguette") || !nextDalle.getType().equals(EntityType.FANTOME))){
+                && (getGameState().getBoolean("aUneBaguette") || !nextDalle.getType().equals(EntityType.FANTOME))
+                && (getGameState().getBoolean("aLaCle1") || !nextDalle.getType().equals(EntityType.CADENAS1))
+                && (getGameState().getBoolean("aLaCle2") || !nextDalle.getType().equals(EntityType.CADENAS2))){
             mouvement = true;
             player.setY(niveau.getBorder() + getGameState().getInt("caseMovedY") * niveau.getEcart());
 
@@ -209,15 +228,83 @@ public class Main extends GameApplication {
             nextDalle.setTombee(true);
             getGameWorld().removeEntities(actualDalle.getEntite(), nextDalle.getMotif());
 
+            ObservableList<Node> statisticPommes = ((HBox) statistics.getChildren().get(0)).getChildren();
+            Iterator<Node> itPommePlusText = statisticPommes.iterator();
+            itPommePlusText.next();
+            HBox itPommeHbox = (HBox) itPommePlusText.next();
+            Iterator<Node> itPomme = itPommeHbox.getChildren().iterator();
 
+            ObservableList<Node> statisticPommeBleue = ((HBox) statistics.getChildren().get(1)).getChildren();
+            ObservableList<Node> statisticCle= ((HBox) statistics.getChildren().get(2)).getChildren();
+
+            int index = 0;
+
+            switch (nextDalle.getType()){
+                case FANTOME: getGameState().setValue("aUneBaguette", false);
+                    break;
+                case BAGUETTE: getGameState().setValue("aUneBaguette", true);
+                    break;
+                case POMME1:
+                    while (itPomme.hasNext()) {
+                        ImageView pomme = (ImageView) itPomme.next();
+                        if (pomme.equals(itemImagesPomme1.getImageViewDefaut())) {
+
+                            break;
+                        }
+                        index++;
+
+                    }
+                    itPommeHbox.getChildren().set(index, itemImagesPomme1.getImageView(0.2, 75));
+                    break;
+                case POMME2:
+                    while (itPomme.hasNext()) {
+                        ImageView pomme = (ImageView) itPomme.next();
+                        if (pomme.equals(itemImagesPomme2.getImageViewDefaut())) {
+
+                            break;
+                        }
+                        index++;
+
+                     }
+                     itPommeHbox.getChildren().set(index, itemImagesPomme2.getImageView(0.2, 75));
+                     break;
+                case POMME3:
+                    while (itPomme.hasNext()) {
+                        ImageView pomme = (ImageView) itPomme.next();
+                        if (pomme.equals(itemImagesPomme3.getImageViewDefaut())) {
+
+                            break;
+                        }
+                        index++;
+
+                    }
+                    itPommeHbox.getChildren().set(index, itemImagesPomme3.getImageView(0.2, 75));
+                    break;
+                case POMME4:
+                    break;
+                case CLE1: statisticCle.clear();
+                    statisticCle.add(new Text(labels[2]));
+                    statisticCle.add(itemImagesCle1.getImageView(0d, 50));
+                    getGameState().setValue("aLaCle1", true);
+                    break;
+                case CLE2: statisticCle.clear();
+                    statisticCle.add(new Text(labels[2]));
+                    statisticCle.add(itemImagesCle2.getImageView(0d, 50));
+                    getGameState().setValue("aLaCle2", true);
+                    break;
+                case CADENAS1: statisticCle.clear();
+                    statisticCle.add(new Text(labels[2]));
+                    statisticCle.add(itemImagesCleNeutre.getImageView(- 0.4d, 50));
+                    getGameState().setValue("aLaCle1", false);
+                    break;
+                case CADENAS2: statisticCle.clear();
+                    statisticCle.add(new Text(labels[2]));
+                    statisticCle.add(itemImagesCleNeutre.getImageView(- 0.4d, 50));
+                    getGameState().setValue("aLaCle2", false);
+                    break;
+            }
 
             String image;
-            if (nextDalle.getType().equals(EntityType.FANTOME)){
-                getGameState().setValue("aUneBaguette", false);
-            }
-            if (nextDalle.getType().equals(EntityType.BAGUETTE)){
-                getGameState().setValue("aUneBaguette", true);
-            }
             if (getGameState().getBoolean("aUneBaguette")){
                 image = "fee_baguette_big.png";
             }
@@ -257,20 +344,22 @@ public class Main extends GameApplication {
         statistics.setTranslateX(650); // x = 700
         statistics.setTranslateY(50); // y = 100
 
-        String[] labels = new String[] {"Pommes", "Pomme bleue", "Clé(s)",};
+        labels = new String[] {"Pommes", "Pomme bleue", "Clé(s)",};
 
-        ItemImages itemImagesPomme1 = new ItemImages(EntityType.POMME, "assets/textures/" + "pomme1_big.png");
-        ItemImages itemImagesPomme2 = new ItemImages(EntityType.POMME, "assets/textures/" + "pomme2_big.png");
-        ItemImages itemImagesPomme3 = new ItemImages(EntityType.POMME, "assets/textures/" + "pomme3_big.png");
-        ItemImages itemImagesPomme4 = new ItemImages(EntityType.POMME, "assets/textures/" + "pomme4_big.png");
-        ItemImages itemImagesCle = new ItemImages(EntityType.CLE, "assets/textures/" + "cle_1_neutre_big.png");
+        itemImagesPomme1 = new ItemImages(EntityType.POMME, "assets/textures/" + "pomme1_big.png");
+        itemImagesPomme2 = new ItemImages(EntityType.POMME, "assets/textures/" + "pomme2_big.png");
+        itemImagesPomme3 = new ItemImages(EntityType.POMME, "assets/textures/" + "pomme3_big.png");
+        itemImagesPomme4 = new ItemImages(EntityType.POMME, "assets/textures/" + "pomme4_big.png");
+        itemImagesCleNeutre = new ItemImages(EntityType.CLE, "assets/textures/" + "cle_1_neutre_big.png");
+        itemImagesCle1 = new ItemImages(EntityType.CLE, "assets/textures/" + "cle_1_big.png");
+        itemImagesCle2 = new ItemImages(EntityType.CLE, "assets/textures/" + "cle_2_big.png");
 
 
         HBox hboxPommes = new HBox();
         hboxPommes.getChildren().addAll(
-                itemImagesPomme1.getImageView(-0.7, 60),
-                itemImagesPomme2.getImageView(-0.7, 60),
-                itemImagesPomme3.getImageView(-0.7, 60)
+                itemImagesPomme1.getImageViewDefaut(),
+                itemImagesPomme2.getImageViewDefaut(),
+                itemImagesPomme3.getImageViewDefaut()
         );
         HBox hboxPommeBleue = new HBox();
         hboxPommeBleue.getChildren().addAll(
@@ -279,7 +368,7 @@ public class Main extends GameApplication {
 
         HBox hboxCle = new HBox();
         hboxCle.getChildren().addAll(
-                itemImagesCle.getImageView(-0.7, 60)
+                itemImagesCleNeutre.getImageView(-0.7, 60)
         );
 
         HBox[] icones = new HBox[] {

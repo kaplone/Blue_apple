@@ -14,23 +14,23 @@ items :
     xPos: 0
     yPos: 0
 
-  - type: "POMME"
+  - type: "POMME2"
     imagePath: "pomme2_big.png"
     xPos: 2
     yPos: 0
 
-  - type : "CLE"
+  - type : "CLE1"
     imagePath: "cle_1_big.png"
     xPos: 3
     yPos: 0
 
-  - type: "POMME"
+  - type: "POMME4"
     imagePath: "pomme4_big.png"
     xPos: 0
     yPos: 1
 
-  - type: "POMME"
-    imagePath: "pomme1_big.png"
+  - type: "CLE2"
+    imagePath: "cle_2_big.png"
     xPos: 1
     yPos: 1
 
@@ -44,13 +44,13 @@ items :
     xPos: 3
     yPos: 1
 
-  - type : "CADENAS"
-    imagePath: "cadenas_1_big.png"
+  - type : "CADENAS2"
+    imagePath: "cadenas_2_big.png"
     xPos: 0
     yPos: 2
 
-  - type : "CLE"
-    imagePath: "cle_2_big.png"
+  - type : "BAGUETTE"
+    imagePath: "baguette_big.png"
     xPos: 1
     yPos: 2
 
@@ -64,22 +64,22 @@ items :
     xPos: 3
     yPos: 2
 
-  - type: "FANTOME"
-    imagePath: "fantome_big.png"
+  - type: "POMME1"
+    imagePath: "pomme1_big.png"
     xPos: 0
     yPos: 3
 
-  - type: "BAGUETTE"
-    imagePath: "baguette_big.png"
+  - type: "FANTOME"
+    imagePath: "fantome_big.png"
     xPos: 1
     yPos: 3
 
-  - type : "CADENAS"
-    imagePath: "cadenas_2_big.png"
+  - type : "CADENAS1"
+    imagePath: "cadenas_1_big.png"
     xPos: 2
     yPos: 3
 
-  - type: "POMME"
+  - type: "POMME3"
     imagePath: "pomme3_big.png"
     xPos: 3
     yPos: 3

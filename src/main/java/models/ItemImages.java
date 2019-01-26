@@ -14,13 +14,10 @@ public class ItemImages {
     private Integer id;
     private EntityType type;
     private String url;
+    private ImageView imageViewDefaut;
 
     static {
         nextId = 0;
-        desaturer = new ColorAdjust();
-        desaturer.setSaturation(-0.7);
-        desaturer.setBrightness(0.5);
-        desaturer.setContrast(0.4);
     }
 
     public ItemImages(EntityType type, String url) {
@@ -28,12 +25,22 @@ public class ItemImages {
         this.url = url;
         this.id = nextId;
         nextId ++;
+        imageViewDefaut = getImageView(- 0.8d, 60);
+    }
+
+    public ImageView getImageViewDefaut() {
+        return imageViewDefaut;
     }
 
     public ImageView getImageView(Double saturation, Integer height){
         imageDeBase = new Image(url, height, height, true, true);
+        ColorAdjust desaturerBis = new ColorAdjust();
+        desaturerBis.setSaturation(saturation);
+        desaturerBis.setBrightness(0);
+        desaturerBis.setContrast(0);
+
         ImageView imageView =  new ImageView(imageDeBase);
-        imageView.setEffect(desaturer);
+        imageView.setEffect(desaturerBis);
         return imageView;
     }
 }
