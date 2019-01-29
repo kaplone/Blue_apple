@@ -14,6 +14,11 @@ items :
     xPos: 0
     yPos: 0
 
+  - type: "FEE"
+    imagePath: "fee_big.png"
+    xPos: 1
+    yPos: 0
+
   - type: "POMME2"
     imagePath: "pomme2_big.png"
     xPos: 2

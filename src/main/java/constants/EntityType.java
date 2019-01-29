@@ -3,6 +3,7 @@ package constants;
 public enum EntityType {
     CASE ("CASE"),
     SHINE ("SHINE"),
+    FEE ("FEE"),
     CLE ("CLE"),
     CLE1 ("CLE1"),
     CLE2 ("CLE2"),

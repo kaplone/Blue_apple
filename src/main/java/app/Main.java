@@ -3,27 +3,21 @@ package app;
 import com.almasb.fxgl.app.GameApplication;
 import com.almasb.fxgl.entity.Entities;
 import com.almasb.fxgl.entity.Entity;
-import com.almasb.fxgl.entity.components.CollidableComponent;
 import com.almasb.fxgl.input.Input;
 import com.almasb.fxgl.input.UserAction;
-import com.almasb.fxgl.physics.PhysicsComponent;
 import com.almasb.fxgl.settings.GameSettings;
 import com.almasb.fxgl.time.Timer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import constants.EntityType;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.effect.ColorAdjust;
 import javafx.scene.effect.Light;
 import javafx.scene.effect.Lighting;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -48,15 +42,9 @@ public class Main extends GameApplication {
     private Entity player;
     private List<Entity> pommes;
     private Map<String, Dalle> dalles;
-    private Entity pomme;
     private GameSettings settings;
     private Integer sizeX = 1200;
     private Integer sizeY = 700;
-
-    private Entity bouton_reset;
-    private Entity bouton_back;
-
-    private Double vitesse;
 
     private DecimalFormat df;
 
@@ -122,6 +110,9 @@ public class Main extends GameApplication {
         l.setDiffuseConstant(0.5);
         l.setSurfaceScale(7.5f);
 
+        dalles.clear();
+        items.clear();
+
         for (int y = 0; y < niveau.getSize_v(); y++){
             for (int x = 0; x < niveau.getSize_h(); x++){
                 Rectangle r = new Rectangle(100, 100, Color.valueOf(niveau.getCouleur()));
@@ -138,42 +129,44 @@ public class Main extends GameApplication {
             }
         }
 
-        player = Entities.builder()
-                .type(JOUEUR)
-                .at(niveau.getBorder() + niveau.getInit_h() * niveau.getEcart(),
-                niveau.getBorder() + niveau.getInit_v() * niveau.getEcart())
-                .viewFromTexture("fee_big.png")
-                .buildAndAttach(getGameWorld());
-        getGameState().setValue("caseMovedX", niveau.getInit_h());
-        getGameState().setValue("caseMovedY", niveau.getInit_v());
-        getGameState().setValue("aUneBaguette", false);
-        getGameState().setValue("aLaCle1", false);
-        getGameState().setValue("aLaCle2", false);
-        getGameState().setValue("aLaCle3", false);
-
         for (Item item_ : niveau.getItems()) {
-            item = Entities.builder()
-                    .type(item_.getType())
-                    .at(niveau.getBorder() + item_.getxPos() * niveau.getEcart(),
-                        niveau.getBorder() + item_.getyPos() * niveau.getEcart())
-                    .viewFromTexture(item_.getImagePath())
-                    .buildAndAttach(getGameWorld());
-            items.add(item);
-            dalles.get(item_.getxPos() + "_" + item_.getyPos()).setMotif(item);
-            dalles.get(item_.getxPos() + "_" + item_.getyPos()).setType(item_.getType());
+            if (!EntityType.FEE.equals(item_.getType())){
+                item = Entities.builder()
+                        .type(item_.getType())
+                        .at(niveau.getBorder() + item_.getxPos() * niveau.getEcart(),
+                                niveau.getBorder() + item_.getyPos() * niveau.getEcart())
+                        .viewFromTexture(item_.getImagePath())
+                        .buildAndAttach(getGameWorld());
+                items.add(item);
+                dalles.get(item_.getxPos() + "_" + item_.getyPos()).setMotif(item);
+                dalles.get(item_.getxPos() + "_" + item_.getyPos()).setType(item_.getType());
+            }
+            else {
+                if (player != null){
+                    player.removeFromWorld();
+                }
+                player = Entities.builder()
+                        .type(JOUEUR)
+                        .at(niveau.getBorder() + niveau.getInit_h() * niveau.getEcart(),
+                                niveau.getBorder() + niveau.getInit_v() * niveau.getEcart())
+                        .viewFromTexture("fee_big.png")
+                        .buildAndAttach(getGameWorld());
+                dalles.get(item_.getxPos() + "_" + item_.getyPos()).setMotif(player);
+                dalles.get(item_.getxPos() + "_" + item_.getyPos()).setType(item_.getType());
+                getGameState().clear();
+                getGameState().setValue("caseMovedX", niveau.getInit_h());
+                getGameState().setValue("caseMovedY", niveau.getInit_v());
+                getGameState().setValue("aUneBaguette", false);
+                getGameState().setValue("aLaCle1", false);
+                getGameState().setValue("aLaCle2", false);
+                getGameState().setValue("aLaCle3", false);
+            }
         }
     }
 
     @Override
     protected void initInput() {
         Input input = getInput();
-
-//        input.addAction(new UserAction("click reset") {
-//            @Override
-//            protected void onActionBegin() {
-//                System.out.println("click");
-//            }
-//        }, MouseButton.PRIMARY);
 
         input.addAction(new UserAction("Reset") {
 
@@ -256,8 +249,8 @@ public class Main extends GameApplication {
                 && (getGameState().getBoolean("aLaCle1") || !nextDalle.getType().equals(EntityType.CADENAS1))
                 && (getGameState().getBoolean("aLaCle2") || !nextDalle.getType().equals(EntityType.CADENAS2))
                 && (pommesOK == 3 || !nextDalle.getType().equals(EntityType.POMME4))){
+
             mouvement = true;
-            player.setY(niveau.getBorder() + getGameState().getInt("caseMovedY") * niveau.getEcart());
 
             actualDalle.setTombee(true);
             nextDalle.setTombee(true);
@@ -365,9 +358,13 @@ public class Main extends GameApplication {
                     HBox pommeBleueHbox = (HBox) pommeBleueIteraror.next();
                     pommeBleueHbox.getChildren().set(0, itemImagesPomme4.getImageView(0.2, 75));
                     level ++;
+                    items.clear();
                     getGameScene().clear();
+                    getGameState().clear();
+                    getGameWorld().clear();
                     initGame();
                     initUI();
+                    mouvement = false;
                     break;
                 case CLE1: statisticCle.clear();
                     statisticCle.add(new Text(labels[2]));
@@ -486,13 +483,16 @@ public class Main extends GameApplication {
             else {
                 image = "fee_big.png";
             }
-            player.removeFromWorld();
-            player = Entities.builder()
-                    .type(JOUEUR)
-                    .at(nextDalle.getEntite().getX(),
-                            nextDalle.getEntite().getY())
-                    .viewFromTexture(image)
-                    .buildAndAttach(getGameWorld());
+
+            if (mouvement){
+                player.removeFromWorld();
+                player = Entities.builder()
+                        .type(JOUEUR)
+                        .at(nextDalle.getEntite().getX(),
+                                nextDalle.getEntite().getY())
+                        .viewFromTexture(image)
+                        .buildAndAttach(getGameWorld());
+            }
         }
         else {
             player.removeFromWorld();
@@ -601,18 +601,6 @@ public class Main extends GameApplication {
         sous_titre.setY(70);
 
         getGameScene().addUINodes(titre, sous_titre);
-//
-//        bouton_reset = Entities.builder()
-//                .type(BOUTON)
-//                .at(850, 450)
-//                .viewFromTexture("reset_big.png")
-//                .buildAndAttach(getGameWorld());
-//
-//        bouton_reset = Entities.builder()
-//                .type(BOUTON)
-//                .at(650, 470)
-//                .viewFromTexture("back_big.png")
-//                .buildAndAttach(getGameWorld());
 
         df = new DecimalFormat("00.00");
 
